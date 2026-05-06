@@ -2,6 +2,8 @@ package com.moulberry.axiom.packet.impl;
 
 import com.moulberry.axiom.AxiomConstants;
 import com.moulberry.axiom.AxiomPaper;
+import com.moulberry.axiom.AxiomReflection;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.buffer.CompressedBlockEntity;
 import com.moulberry.axiom.integration.plotsquared.PlotSquaredIntegration;
@@ -143,18 +145,18 @@ public class RequestChunkDataPacketListener implements PacketHandler {
                     LevelChunk chunk = level.getChunkIfLoaded(chunkX, chunkZ);
                     if (chunk == null) continue;
 
-                    BlockEntity blockEntity = chunk.getBlockEntity(mutableBlockPos, LevelChunk.EntityCreationType.CHECK);
+                    BlockEntity blockEntity = AxiomReflection.getBlockEntity(chunk, mutableBlockPos);
                     if (blockEntity != null) {
                         CompoundTag tag = blockEntity.saveWithoutMetadata(player.registryAccess());
                         sendingBlockEntities.put(pos, CompressedBlockEntity.compress(tag, baos));
                     }
                 } else {
-                    long chunkPosLong = ChunkPos.pack(chunkX, chunkZ);
+                    long chunkPosLong = FoliaCompat.chunkPosPack(chunkX, chunkZ);
                     LongList blockEntitiesInChunk = sendBlockEntityForPendingChunks.get(chunkPosLong);
                     if (blockEntitiesInChunk != null) {
                         blockEntitiesInChunk.add(pos);
                     } else {
-                        chunkFutures.add(ChunkPos.pack(chunkX, chunkZ));
+                        chunkFutures.add(FoliaCompat.chunkPosPack(chunkX, chunkZ));
 
                         blockEntitiesInChunk = new LongArrayList();
                         blockEntitiesInChunk.add(pos);
@@ -193,7 +195,7 @@ public class RequestChunkDataPacketListener implements PacketHandler {
                         sendingSections.put(pos, container);
 
                         if (sendBlockEntitiesInChunks) {
-                            Set<Map.Entry<BlockPos, BlockEntity>> entrySet = chunk.blockEntities.entrySet();
+                            Set<Map.Entry<BlockPos, BlockEntity>> entrySet = chunk.getBlockEntities().entrySet();
                             Iterator<Map.Entry<BlockPos, BlockEntity>> iterator;
                             if (entrySet instanceof Object2ObjectMap.FastEntrySet fastEntrySet) {
                                 iterator = fastEntrySet.fastIterator();
@@ -216,12 +218,12 @@ public class RequestChunkDataPacketListener implements PacketHandler {
                         }
                     }
                 } else {
-                    long chunkPosLong = ChunkPos.pack(sx, sz);
+                    long chunkPosLong = FoliaCompat.chunkPosPack(sx, sz);
                     IntList sendSections = sendSectionsForPendingChunks.get(chunkPosLong);
                     if (sendSections != null) {
                         sendSections.add(sy);
                     } else {
-                        chunkFutures.add(ChunkPos.pack(sx, sz));
+                        chunkFutures.add(FoliaCompat.chunkPosPack(sx, sz));
 
                         sendSections = new IntArrayList();
                         sendSections.add(sy);

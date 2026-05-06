@@ -46,11 +46,33 @@ public class WorldExtension {
         }
     }
 
+    /**
+     * Called from the global tick. Iterates all worlds and dispatches
+     * per-world ticks to the appropriate scheduler.
+     */
     public static void tick(MinecraftServer server, boolean sendMarkers, int maxChunkRelightsPerTick, int maxChunkSendsPerTick) {
         extensions.keySet().retainAll(server.levelKeys());
 
         for (ServerLevel level : server.getAllLevels()) {
-            get(level).tick(sendMarkers, maxChunkRelightsPerTick, maxChunkSendsPerTick);
+            WorldExtension ext = get(level);
+
+            // Marker ticking can run on global thread (read-only player iteration)
+            if (sendMarkers) {
+                ext.tickMarkers();
+            }
+
+            // Chunk relight/send must run on the region thread for that world
+            final int relights = maxChunkRelightsPerTick;
+            final int sends = maxChunkSendsPerTick;
+            if (FoliaCompat.isFolia()) {
+                // Schedule on the world's spawn chunk region to ensure proper region ownership
+                org.bukkit.World bukkitWorld = level.getWorld();
+                FoliaCompat.executeAtLocation(AxiomPaper.PLUGIN,
+                    new org.bukkit.Location(bukkitWorld, 0, 0, 0),
+                    () -> ext.tickChunkRelight(relights, sends));
+            } else {
+                ext.tickChunkRelight(relights, sends);
+            }
         }
     }
 
@@ -61,11 +83,11 @@ public class WorldExtension {
     private final Map<UUID, MarkerData> previousMarkerData = new HashMap<>();
 
     public void sendChunk(int cx, int cz) {
-        this.pendingChunksToSend.add(ChunkPos.pack(cx, cz));
+        this.pendingChunksToSend.add(FoliaCompat.chunkPosPack(cx, cz));
     }
 
     public void lightChunk(int cx, int cz) {
-        this.pendingChunksToLight.add(ChunkPos.pack(cx, cz));
+        this.pendingChunksToLight.add(FoliaCompat.chunkPosPack(cx, cz));
     }
 
     public void onPlayerJoin(Player player) {
@@ -87,13 +109,6 @@ public class WorldExtension {
                 player.sendMessage(text.color(NamedTextColor.RED));
             }
         } catch (Throwable ignored) {}
-    }
-
-    public void tick(boolean sendMarkers, int maxChunkRelightsPerTick, int maxChunkSendsPerTick) {
-        if (sendMarkers) {
-            this.tickMarkers();
-        }
-        this.tickChunkRelight(maxChunkRelightsPerTick, maxChunkSendsPerTick);
     }
 
     private void tickMarkers() {
@@ -149,9 +164,12 @@ public class WorldExtension {
         // Send chunks
         LongIterator longIterator = this.pendingChunksToSend.longIterator();
         while (longIterator.hasNext()) {
-            ChunkPos chunkPos = ChunkPos.unpack(longIterator.nextLong());
+            long packed = longIterator.nextLong();
+            int cx = FoliaCompat.chunkPosUnpackX(packed);
+            int cz = FoliaCompat.chunkPosUnpackZ(packed);
+            ChunkPos chunkPos = new ChunkPos(cx, cz);
 
-            LevelChunk chunk = this.level.getChunkIfLoaded(chunkPos.x(), chunkPos.z());
+            LevelChunk chunk = this.level.getChunkIfLoaded(cx, cz);
             if (chunk == null) {
                 continue;
             }
@@ -184,12 +202,14 @@ public class WorldExtension {
         longIterator = this.pendingChunksToLight.longIterator();
         if (maxChunkRelightsPerTick <= 0) {
             while (longIterator.hasNext()) {
-                chunkSet.add(ChunkPos.unpack(longIterator.nextLong()));
+                long p = longIterator.nextLong();
+                chunkSet.add(new ChunkPos(FoliaCompat.chunkPosUnpackX(p), FoliaCompat.chunkPosUnpackZ(p)));
             }
             this.pendingChunksToLight.clear();
         } else {
             while (longIterator.hasNext()) {
-                chunkSet.add(ChunkPos.unpack(longIterator.nextLong()));
+                long p = longIterator.nextLong();
+                chunkSet.add(new ChunkPos(FoliaCompat.chunkPosUnpackX(p), FoliaCompat.chunkPosUnpackZ(p)));
                 longIterator.remove();
 
                 maxChunkRelightsPerTick -= 1;

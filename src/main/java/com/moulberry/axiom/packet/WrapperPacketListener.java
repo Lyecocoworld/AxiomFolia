@@ -1,5 +1,6 @@
 package com.moulberry.axiom.packet;
 
+import com.moulberry.axiom.FoliaCompat;
 import io.netty.buffer.Unpooled;
 import net.kyori.adventure.text.Component;
 import net.minecraft.network.FriendlyByteBuf;
@@ -23,7 +24,7 @@ public class WrapperPacketListener implements PluginMessageListener {
         try {
             this.packetHandler.onReceive(player, friendlyByteBuf);
         } catch (Throwable t) {
-            player.kick(Component.text("Error while processing packet " + s + ": " + t.getMessage()));
+            FoliaCompat.kickPlayer(player, Component.text("Error while processing packet " + s + ": " + t.getMessage()));
         }
     }
 }

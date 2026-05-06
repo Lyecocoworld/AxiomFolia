@@ -1,6 +1,8 @@
 package com.moulberry.axiom.operations;
 
 import com.moulberry.axiom.AxiomConstants;
+import com.moulberry.axiom.AxiomReflection;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.buffer.CompressedBlockEntity;
 import com.moulberry.axiom.packet.impl.RequestChunkDataPacketListener;
@@ -105,8 +107,8 @@ public class RequestChunksOperation implements PendingOperation {
                 long chunkPos = newFutureIterator.nextLong();
                 newFutureIterator.remove();
 
-                int x = ChunkPos.getX(chunkPos);
-                int z = ChunkPos.getZ(chunkPos);
+                int x = FoliaCompat.chunkPosUnpackX(chunkPos);
+                int z = FoliaCompat.chunkPosUnpackZ(chunkPos);
                 this.chunkFutures.add(level.getWorld().getChunkAtAsync(x, z));
             }
         }
@@ -121,7 +123,7 @@ public class RequestChunksOperation implements PendingOperation {
             chunkFutureIterator.remove();
 
             LevelChunk chunk = (LevelChunk) ((CraftChunk)future.join()).getHandle(ChunkStatus.FULL);
-            long chunkPosLong = ChunkPos.pack(chunk.locX, chunk.locZ);
+            long chunkPosLong = FoliaCompat.chunkPosPack(chunk.locX, chunk.locZ);
             LongList blockEntitiesInChunk = this.sendBlockEntityForPendingChunks.get(chunkPosLong);
             if (blockEntitiesInChunk != null) {
                 LongIterator iterator = blockEntitiesInChunk.longIterator();
@@ -129,7 +131,7 @@ public class RequestChunksOperation implements PendingOperation {
                     long blockEntityPos = iterator.nextLong();
                     this.mutableBlockPos.set(blockEntityPos);
 
-                    BlockEntity blockEntity = chunk.getBlockEntity(this.mutableBlockPos, LevelChunk.EntityCreationType.CHECK);
+                    BlockEntity blockEntity = AxiomReflection.getBlockEntity(chunk, this.mutableBlockPos);
                     if (blockEntity != null) {
                         CompoundTag tag = blockEntity.saveWithoutMetadata(this.serverPlayer.registryAccess());
                         this.sendingBlockEntities.put(blockEntityPos, CompressedBlockEntity.compress(tag, baos));
@@ -159,7 +161,7 @@ public class RequestChunksOperation implements PendingOperation {
                 }
 
                 if (this.sendBlockEntitiesInChunks && hasNonAirSectionInChunk) {
-                    Set<Map.Entry<BlockPos, BlockEntity>> entrySet = chunk.blockEntities.entrySet();
+                    Set<Map.Entry<BlockPos, BlockEntity>> entrySet = chunk.getBlockEntities().entrySet();
                     Iterator<Map.Entry<BlockPos, BlockEntity>> iterator;
                     if (entrySet instanceof Object2ObjectMap.FastEntrySet fastEntrySet) {
                         iterator = fastEntrySet.fastIterator();

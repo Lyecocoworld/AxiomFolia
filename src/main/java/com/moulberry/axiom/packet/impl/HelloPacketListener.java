@@ -1,6 +1,7 @@
 package com.moulberry.axiom.packet.impl;
 
 import com.moulberry.axiom.*;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.blueprint.DFUHelper;
 import com.moulberry.axiom.blueprint.ServerBlueprintManager;
 import com.moulberry.axiom.event.AxiomHandshakeEvent;
@@ -63,7 +64,7 @@ public class HelloPacketListener implements PacketHandler {
                 player.sendMessage(text.color(NamedTextColor.RED));
                 return;
             } else if (!unsupportedAxiomVersion.equals("ignore")) {
-                player.kick(text);
+                FoliaCompat.kickPlayer(player, text);
                 return;
             }
         }
@@ -84,7 +85,7 @@ public class HelloPacketListener implements PacketHandler {
                     player.sendMessage(incompatibleWarning.color(NamedTextColor.RED));
                     return;
                 } else if (!incompatibleDataVersion.equals("ignore")) {
-                    player.kick(incompatibleWarning);
+                    FoliaCompat.kickPlayer(player, incompatibleWarning);
                     return;
                 }
             } else {
@@ -100,7 +101,7 @@ public class HelloPacketListener implements PacketHandler {
                     if (incompatibleDataVersion.equals("warn")) {
                         player.sendMessage(text.color(NamedTextColor.RED));
                     } else {
-                        player.kick(text);
+                        FoliaCompat.kickPlayer(player, text);
                     }
                     return;
                 }

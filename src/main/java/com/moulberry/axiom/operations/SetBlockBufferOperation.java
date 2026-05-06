@@ -2,6 +2,7 @@ package com.moulberry.axiom.operations;
 
 import com.moulberry.axiom.AxiomPaper;
 import com.moulberry.axiom.AxiomReflection;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.WorldExtension;
 import com.moulberry.axiom.buffer.BlockBuffer;
 import com.moulberry.axiom.buffer.CompressedBlockEntity;
@@ -92,7 +93,7 @@ public class SetBlockBufferOperation implements PendingOperation {
                 int posX = BlockPos.getX(pos);
                 int posZ = BlockPos.getZ(pos);
 
-                long chunkPos = ChunkPos.pack(posX, posZ);
+                long chunkPos = FoliaCompat.chunkPosPack(posX, posZ);
                 this.sectionsForChunks.computeIfAbsent(chunkPos, k -> new ArrayList<>()).add(entry);
             }
 
@@ -110,8 +111,8 @@ public class SetBlockBufferOperation implements PendingOperation {
                 long chunkPos = newFutureIterator.nextLong();
                 newFutureIterator.remove();
 
-                int x = ChunkPos.getX(chunkPos);
-                int z = ChunkPos.getZ(chunkPos);
+                int x = FoliaCompat.chunkPosUnpackX(chunkPos);
+                int z = FoliaCompat.chunkPosUnpackZ(chunkPos);
 
                 int distance = Math.abs(playerSectionX - x) + Math.abs(playerSectionZ - z);
                 boolean canLoad = distance < maxChunkLoadDistance;
@@ -155,7 +156,7 @@ public class SetBlockBufferOperation implements PendingOperation {
             boolean chunkChanged = false;
             boolean chunkLightChanged = false;
 
-            long chunkPosLong = ChunkPos.pack(chunk.locX, chunk.locZ);
+            long chunkPosLong = FoliaCompat.chunkPosPack(chunk.locX, chunk.locZ);
             List<Long2ObjectMap.Entry<PalettedContainer<BlockState>>> sections = this.sectionsForChunks.get(chunkPosLong);
             for (Long2ObjectMap.Entry<PalettedContainer<BlockState>> entry : sections) {
                 int cx = BlockPos.getX(entry.getLongKey());
@@ -242,13 +243,13 @@ public class SetBlockBufferOperation implements PendingOperation {
                             if (blockState.hasBlockEntity()) {
                                 blockPos.set(bx, by, bz);
 
-                                BlockEntity blockEntity = chunk.getBlockEntity(blockPos, LevelChunk.EntityCreationType.CHECK);
+                                BlockEntity blockEntity = AxiomReflection.getBlockEntity(chunk, blockPos);
 
                                 if (blockEntity == null) {
                                     // There isn't a block entity here, create it!
                                     blockEntity = ((EntityBlock)block).newBlockEntity(blockPos, blockState);
                                     if (blockEntity != null) {
-                                        chunk.addAndRegisterBlockEntity(blockEntity);
+                                        AxiomReflection.addAndRegisterBlockEntity(chunk, blockEntity);
                                     }
                                 } else if (blockEntity.getType().isValid(blockState)) {
                                     // Block entity is here and the type is correct
@@ -256,11 +257,11 @@ public class SetBlockBufferOperation implements PendingOperation {
                                     AxiomReflection.updateBlockEntityTicker(chunk, blockEntity);
                                 } else {
                                     // Block entity type isn't correct, we need to recreate it
-                                    chunk.removeBlockEntity(blockPos);
+                                    AxiomReflection.removeBlockEntity(chunk, blockPos);
 
                                     blockEntity = ((EntityBlock)block).newBlockEntity(blockPos, blockState);
                                     if (blockEntity != null) {
-                                        chunk.addAndRegisterBlockEntity(blockEntity);
+                                        AxiomReflection.addAndRegisterBlockEntity(chunk, blockEntity);
                                     }
                                 }
                                 if (blockEntity != null && blockEntityChunkMap != null) {
@@ -277,7 +278,7 @@ public class SetBlockBufferOperation implements PendingOperation {
                                     }
                                 }
                             } else if (old.hasBlockEntity()) {
-                                chunk.removeBlockEntity(blockPos);
+                                AxiomReflection.removeBlockEntity(chunk, blockPos);
                             }
 
                             if (CoreProtectIntegration.isEnabled() && old != blockState) {

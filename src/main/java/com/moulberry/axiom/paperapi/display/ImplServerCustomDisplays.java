@@ -1,6 +1,7 @@
 package com.moulberry.axiom.paperapi.display;
 
 import com.moulberry.axiom.AxiomPaper;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.paperapi.AxiomAlreadyRegisteredException;
 import com.moulberry.axiom.paperapi.block.AxiomCustomBlockBuilder;
@@ -35,7 +36,7 @@ public class ImplServerCustomDisplays {
     private static boolean hasRegisteredToAPlayer = false;
 
     public static void register(Plugin plugin, AxiomCustomDisplayBuilder customDisplayBuilder) throws AxiomAlreadyRegisteredException {
-        if (!MinecraftServer.getServer().isSameThread()) {
+        if (!FoliaCompat.isGlobalThread()) {
             throw new WrongThreadException();
         }
 

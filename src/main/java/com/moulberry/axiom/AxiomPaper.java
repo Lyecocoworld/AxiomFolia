@@ -244,7 +244,7 @@ public class AxiomPaper extends JavaPlugin implements Listener {
         } catch (IOException ignored) {}
         ServerHeightmaps.load(heightmapsPath);
 
-        Bukkit.getScheduler().scheduleSyncRepeatingTask(this, this::tick, 1, 1);
+        FoliaCompat.runGlobalTimer(this, this::tick, 1, 1);
 
         this.sendMarkers = this.configuration.getBoolean("send-markers");
         this.maxChunkRelightsPerTick = this.configuration.getInt("max-chunk-relights-per-tick");
@@ -478,7 +478,7 @@ public class AxiomPaper extends JavaPlugin implements Listener {
         this.availableDispatchSends.put(player.getUniqueId(), currentSends);
 
         if (currentSends < -allowedDispatchSendsPerSecond*20) {
-            player.kick(net.kyori.adventure.text.Component.text("You are sending updates too fast!"));
+            FoliaCompat.kickPlayer(player, net.kyori.adventure.text.Component.text("You are sending updates too fast!"));
             return false;
         } else {
             return true;

@@ -1,6 +1,7 @@
 package com.moulberry.axiom.packet;
 
 import com.moulberry.axiom.AxiomPaper;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.packet.impl.RequestChunkDataPacketListener;
 import com.moulberry.axiom.packet.impl.SetBlockBufferPacketListener;
@@ -76,7 +77,7 @@ public class AxiomBigPayloadHandler extends MessageToMessageDecoder<ByteBuf> {
                     } else {
                         byte[] bytes = ByteBufUtil.getBytes(buf);
 
-                        player.level().getServer().execute(() -> {
+                        FoliaCompat.executeGlobal(AxiomPaper.PLUGIN, () -> {
                             RegistryFriendlyByteBuf friendlyByteBuf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bytes), player.registryAccess());
                             callReceive(handler, player, friendlyByteBuf, identifier);
                         });
@@ -111,6 +112,7 @@ public class AxiomBigPayloadHandler extends MessageToMessageDecoder<ByteBuf> {
         try {
             handler.onReceive(player.getBukkitEntity(), friendlyByteBuf);
         } catch (Throwable t) {
+            t.printStackTrace(); // Log full stack trace to server console
             player.connection.disconnectAsync(net.minecraft.network.chat.Component.literal("Error while processing Axiom packet " + identifier + ": " + t.getMessage()), DisconnectionReason.UNKNOWN);
         }
     }

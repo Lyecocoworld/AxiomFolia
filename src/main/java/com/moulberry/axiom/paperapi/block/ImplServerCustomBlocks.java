@@ -1,6 +1,7 @@
 package com.moulberry.axiom.paperapi.block;
 
 import com.moulberry.axiom.AxiomPaper;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.VersionHelper;
 import com.moulberry.axiom.paperapi.AxiomAlreadyRegisteredException;
 import io.netty.buffer.ByteBufUtil;
@@ -33,7 +34,7 @@ public class ImplServerCustomBlocks {
     private static boolean hasRegisteredToAPlayer = false;
 
     public static void register(Plugin plugin, AxiomCustomBlockBuilder customBlockBuilder) throws AxiomAlreadyRegisteredException {
-        if (!MinecraftServer.getServer().isSameThread()) {
+        if (!FoliaCompat.isGlobalThread()) {
             throw new WrongThreadException();
         }
 

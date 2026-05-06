@@ -1,6 +1,7 @@
 package com.moulberry.axiom.packet.impl;
 
 import com.moulberry.axiom.AxiomPaper;
+import com.moulberry.axiom.FoliaCompat;
 import com.moulberry.axiom.annotations.AnnotationUpdateAction;
 import com.moulberry.axiom.annotations.ServerAnnotations;
 import com.moulberry.axiom.packet.PacketHandler;
@@ -44,11 +45,11 @@ public class UpdateAnnotationPacketListener implements PacketHandler {
         }
 
         // Execute
-        serverPlayer.level().getServer().execute(() -> {
+        FoliaCompat.executeGlobal(AxiomPaper.PLUGIN, () -> {
             try {
                 ServerAnnotations.handleUpdates(serverPlayer.level().getWorld(), actions);
             } catch (Throwable t) {
-                serverPlayer.getBukkitEntity().kick(net.kyori.adventure.text.Component.text(
+                FoliaCompat.kickPlayer(serverPlayer.getBukkitEntity(), net.kyori.adventure.text.Component.text(
                         "An error occured while updating annotations: " + t.getMessage()));
             }
         });

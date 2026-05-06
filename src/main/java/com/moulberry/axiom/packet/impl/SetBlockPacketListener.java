@@ -339,13 +339,13 @@ public class SetBlockPacketListener implements PacketHandler {
             worldSurface.update(x, by, z, blockState);
 
             if (blockState.hasBlockEntity()) {
-                BlockEntity blockEntity = chunk.getBlockEntity(blockPos, LevelChunk.EntityCreationType.CHECK);
+                BlockEntity blockEntity = AxiomReflection.getBlockEntity(chunk, blockPos);
 
                 if (blockEntity == null) {
                     // There isn't a block entity here, create it!
                     blockEntity = ((EntityBlock)block).newBlockEntity(blockPos, blockState);
                     if (blockEntity != null) {
-                        chunk.addAndRegisterBlockEntity(blockEntity);
+                        AxiomReflection.addAndRegisterBlockEntity(chunk, blockEntity);
                     }
                 } else if (blockEntity.getType().isValid(blockState)) {
                     // Block entity is here and the type is correct
@@ -354,15 +354,15 @@ public class SetBlockPacketListener implements PacketHandler {
                     AxiomReflection.updateBlockEntityTicker(chunk, blockEntity);
                 } else {
                     // Block entity type isn't correct, we need to recreate it
-                    chunk.removeBlockEntity(blockPos);
+                    AxiomReflection.removeBlockEntity(chunk, blockPos);
 
                     blockEntity = ((EntityBlock)block).newBlockEntity(blockPos, blockState);
                     if (blockEntity != null) {
-                        chunk.addAndRegisterBlockEntity(blockEntity);
+                        AxiomReflection.addAndRegisterBlockEntity(chunk, blockEntity);
                     }
                 }
             } else if (old.hasBlockEntity()) {
-                chunk.removeBlockEntity(blockPos);
+                AxiomReflection.removeBlockEntity(chunk, blockPos);
             }
 
             // Mark block changed
