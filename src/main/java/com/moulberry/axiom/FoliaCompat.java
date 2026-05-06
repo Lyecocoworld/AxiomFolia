@@ -95,6 +95,18 @@ public final class FoliaCompat {
         }
     }
 
+    /**
+     * Execute a task on the entity's region thread (immediate, no delay).
+     * Uses the EntityScheduler on Folia, runTask on Paper.
+     */
+    public static void executeAtEntity(Entity entity, Runnable task) {
+        if (FOLIA) {
+            entity.getScheduler().execute(AxiomPaper.PLUGIN, task, null, 1);
+        } else {
+            Bukkit.getScheduler().runTask(AxiomPaper.PLUGIN, task);
+        }
+    }
+
     // ── Player actions ──────────────────────────────────────────────────
 
     /**

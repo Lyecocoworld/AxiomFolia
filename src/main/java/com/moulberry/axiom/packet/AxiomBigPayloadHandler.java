@@ -77,7 +77,8 @@ public class AxiomBigPayloadHandler extends MessageToMessageDecoder<ByteBuf> {
                     } else {
                         byte[] bytes = ByteBufUtil.getBytes(buf);
 
-                        FoliaCompat.executeGlobal(AxiomPaper.PLUGIN, () -> {
+                        FoliaCompat.executeAtEntity(player.getBukkitEntity(), () -> {
+                            if (player.hasDisconnected()) return;
                             RegistryFriendlyByteBuf friendlyByteBuf = new RegistryFriendlyByteBuf(Unpooled.wrappedBuffer(bytes), player.registryAccess());
                             callReceive(handler, player, friendlyByteBuf, identifier);
                         });
