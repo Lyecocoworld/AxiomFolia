@@ -48,10 +48,10 @@ https://modrinth.com/plugin/axiom-paper-plugin/
 
 ## TIPS
 
-**Axiom works in singleplayer but not when I connect to a multiplayer server running the Axiom Paper / Folia Plugin. What gives?**
+To use axiom in your Folia / Folia fork server, along side downloading the Axiom Folia plugin you have to :
 
-First, the player must be an op on the server. If the player does not have op permissions, run `/op <playername>`. This player must then disconnect from the server and reconnect.
+- Be an op on the server. If the player does not have op permissions, run `/op <playername>`. This player must then disconnect from the server and reconnect.
 
-If you're using an alternative solution for permission management, you must give players the `axiom.default` permission.
+ - If you're using an alternative solution for permission management, you must give players the `axiom.default` permission.
 
-If players continue to have issues, they can run the `/whynoaxiom` command for more information.
+ - If players continue to have issues, they can run the `/whynoaxiom` command for more information.
