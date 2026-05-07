@@ -43,9 +43,6 @@ Make sure to include:
 - Some behaviors are inherently difficult to fix without deeper architectural changes  
 - Feedback and contributions are welcome  
 
-## Download the mod at
-https://modrinth.com/plugin/axiom-paper-plugin/
-
 ## TIPS
 
 To use axiom in your Folia / Folia fork server, along side downloading the Axiom Folia plugin you have to :
